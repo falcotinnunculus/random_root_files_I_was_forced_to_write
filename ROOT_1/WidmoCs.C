@@ -19,13 +19,32 @@ Bool_t WidmoCs(string name = "Cs-137.dat") {
 	}
 	else cout << "dat działa" <<endl;
 
-	string line;
+	Float_t line;
+	Int_t nbin = 0;
+	Int_t nbins = 1024;
+	Float_t counts[nbins];
+
 	while (!mydat.eof() ){
+		++nbin;
 		mydat >> line;
 		cout << line << " "; 
+		counts[nbins] = line;
 	}
 	
+
+	//cout << nbins;
+
+	TH1F *myhist = new TH1F("hWidmo","hWidmo",nbins,0,nbins);
+
+	for(int i=0; i<nbins; i++){
+		myhist->SetBinContent(i+1,counts[i]);
+	}
+
+	myhist->Draw();
+
+
 	mydat.close();
 	return kTRUE;
+
 
 }

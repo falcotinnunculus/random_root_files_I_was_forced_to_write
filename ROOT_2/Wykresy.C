@@ -2,16 +2,18 @@
 #include<fstream>
 using namespace std;
 
+Double_t energie[4] = {12,20,40,65};
+//TString modes[4] = {"APC","PC","PC","PC"};
 
-
-Bool_t Wykresy(Double_t energia){
+TGraph* Rysuj(Double_t energia = 12){
 
 	const int n=91;
 	TFile *file = new TFile("mojwykres.root","UPDATE");
 
         if(!file->IsOpen()){
                 cout << "plik nie działa" <<endl;
-                return kFALSE;
+                //return kFALSE;
+		return nullptr;
         }
 
 	TString nazwa = Form("pp0%.3fang.L01",energia);
@@ -22,7 +24,8 @@ Bool_t Wykresy(Double_t energia){
 	if(!dane.is_open()){
 		cout << "Nie mozna otworzyc pliku tekstowego " << nazwa << endl;
  //Sprawdzanie czy plik został poprawnie otwarty
-		return kFALSE;
+		//return kFALSE;
+		return nullptr;
 	}
 
 	Double_t katy[n], pczynny[n], xd;
@@ -40,13 +43,32 @@ Bool_t Wykresy(Double_t energia){
 	//graph->SetLineColor(kBlue);
 	//graph->SetLineWidth();
 
-	graph->Draw("AP");
+//	graph->Draw(mode);
 	graph->Write();
 	file->Close();
 
 
-	return kTRUE;
+	return graph;
 	
+
+}
+
+Bool_t Wykresy(){
+	
+	TMultiGraph *mg = new TMultiGraph();
+
+	TLegend *leg = new TLegend(0,0,0.5,0.5,"legemda");
+
+	for(Int_t i=0; i<4; i++){
+		TGraph *graph=Rysuj(energie[i]);
+		mg->Add(graph);
+		leg->AddEntry(graph,to_string(energie[i]).c_str());
+	}
+
+	mg->Draw("ALP");
+	leg->Draw();
+
+	return kTRUE;
 
 
 }

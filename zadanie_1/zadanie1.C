@@ -25,7 +25,6 @@ Bool_t zadanie1(string name="wave_0.dat"){
 	Int_t nbins = 1024;
 	//Float_t counts[nbins];
 
-	cout << "dupa ";
 
 	while (!mydat.eof() ){
 		++nbin;

@@ -21,9 +21,9 @@ Bool_t Fitowanie(string filename = "widmo.root", string histname = "hWidmo") {
 
 	TFitResultPtr results = hist->Fit(fun,"S,R");
 
-	Double_t fwhm = fun->GetParameter(4);
+	Double_t fwhm = fun->GetParameter(4) / fun->GetParameter(3);
 	TLatex text;
-	text.DrawLatex(400,1000,to_string(fwhm).c_str());
+	text.DrawLatex(400,1000,Form("fwhm=%f%%",fwhm*100));
 
 	fstream myfile;
 	myfile.open("fitowanieresults.txt",ios::out);

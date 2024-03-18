@@ -32,7 +32,7 @@ Bool_t zadanie1(string name="wave_0.dat"){
 		mydat >> line;
 	//	cout << line << " "; 
 		//counts[nbin] = line
-		if(nbin%100 == 0) cout << "chuj" << nbin << endl;
+		if(nbin%10000 == 0) cout << nbin << endl;
 	}
 	
 	cout << nbin;

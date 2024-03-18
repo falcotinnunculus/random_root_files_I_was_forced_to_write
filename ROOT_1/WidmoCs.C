@@ -51,7 +51,12 @@ Bool_t WidmoCs(string name = "Cs-137.dat") {
 	marker.SetMarkerStyle(3);
 	marker.DrawMarker(260,1240);
 
+	myhist->Write();
+
 	mydat.close();
+
+	TF1 *fun = new TF1("my_name","pol1000",0,10);
+
 	return kTRUE;
 
 

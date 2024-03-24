@@ -11,6 +11,7 @@ Bool_t zadanie1(string name="wave_0.txt"){
 	//	cout << "plik nie działa" <<endl;
 		//return kFALSE;
 	//}
+	gROOT->Reset();
 	//
 	cout << "dupa blada";
 	ifstream mydat;
@@ -23,29 +24,31 @@ Bool_t zadanie1(string name="wave_0.txt"){
 	}
 	else {cout << "dat działa" <<endl;}
 
-	cout << "dupa blada";
 	Float_t liczba;
-	cout << "dupa blada";
 	string line;
-	cout << "dupa blada";
 	Int_t nbin = 0;
-	cout << "dupa blada";
 	Int_t nbins = 1024;
-	cout << "dupa blada";
-	//Float_t counts[nbins];
 	Float_t temp;
-	//Int_t maxline = 55048191;
-	Int_t maxline = 55048191;
+	Int_t maxline = 55048192;
 	Float_t lines[nbins];
+	Float_t adc = 4.096;
 	for(int i=0; i<nbins; i++) lines[i] = 0;
-	cout << "dupa";
-	while (nbin < maxline ){
-	//	if(nbin%100000==0) cout << "chuj";
-		mydat >> temp;
-		lines[nbin%1024] += temp;
-	//	if(nbin%1000000==0) cout << lines[nbin] << " ";
-	//	if(nbin%100 == 0) break;
+	while (!mydat.eof()){
+		for(int i=0; i<nbins; i++){
+			mydat >> temp;
+			lines[i] = temp;
 		nbin++;
+		}
+
+		TH1F *myhist = new TH1F("hWidmo","hWidmo",nbins,0,nbins);
+	
+		for(int i=0; i<nbins; i++){
+			myhist->SetBinContent(i+1,lines[i]/adc);
+		}
+		TCanvas *can = new TCanvas("can","can",600,600);
+
+		myhist->Draw();
+		gPad->WaitPrimitive();
 	}
 	for(int i=0; i<nbins; i++) cout << lines[i] << " ";
 	
@@ -54,13 +57,7 @@ Bool_t zadanie1(string name="wave_0.txt"){
 	//cout << nbins;
 	Float_t counts[nbins];
 
-	TH1F *myhist = new TH1F("hWidmo","hWidmo",nbins,0,nbins);
 
-	for(int i=0; i<nbins; i++){
-		myhist->SetBinContent(i+1,counts[i]);
-	}
-
-	//myhist->Draw();
 
 
 	//mydat.close();

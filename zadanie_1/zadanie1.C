@@ -3,64 +3,65 @@
 #include<string>
 using namespace std;
 
-Bool_t zadanie1(string name="wave_0.txt"){
+Bool_t zadanie1(string name="wave_0.dat", int baseline=0){
 
-	//TFile *file = new TFile("widmo.root","UPDATE");
-
-	//if(!file->IsOpen()){
-	//	cout << "plik nie działa" <<endl;
-		//return kFALSE;
-	//}
 	gROOT->Reset();
-	//
-	cout << "dupa blada";
+	
 	ifstream mydat;
-	mydat.open(name, ios::in );
+	mydat.open(name, ios::binary | ios::in );
 
-	cout << "dupa blada";
 	if(!mydat.is_open()){
 		cout << "dat nie działa" <<endl;
 		return kFALSE;
 	}
 	else {cout << "dat działa" <<endl;}
 
-	Float_t liczba;
-	string line;
-	Int_t nbin = 0;
+	Int_t nhist = 0;
 	Int_t nbins = 1024;
-	Float_t temp;
-	Int_t maxline = 55048192;
+	Float_t tempx;
+	Float_t mean;
 	Float_t lines[nbins];
 	Float_t adc = 4.096;
+	Int_t mean_denom = 50;
+
+
+	TH1F *myhist = new TH1F("histo","histogram from scintillator",nbins,0,nbins);
+	myhist->GetXaxis()->SetTitle("channle number");
+	myhist->GetYaxis()->SetTitle("amplitude [mV]");
+	TLatex text;
+
 	for(int i=0; i<nbins; i++) lines[i] = 0;
 	while (!mydat.eof()){
+		cout << Form("printing histogram %i", nhist) << endl; 
 		for(int i=0; i<nbins; i++){
-			mydat >> temp;
-			lines[i] = temp;
-		nbin++;
+			mydat.read((char*)&tempx, sizeof(float));
+			lines[i] = tempx;
 		}
 
-		TH1F *myhist = new TH1F("hWidmo","hWidmo",nbins,0,nbins);
-	
-		for(int i=0; i<nbins; i++){
-			myhist->SetBinContent(i+1,lines[i]/adc);
+		mean = 0;
+		if(baseline==1){
+			for(int i=0; i<50; i++){
+				mean+= lines[i]/mean_denom;
+			}
 		}
-		TCanvas *can = new TCanvas("can","can",600,600);
 
+
+
+		for(int i=0; i<nbins; i++){
+			myhist->SetBinContent(i+1,(lines[i]-mean)/adc);
+		}
+		TCanvas *can = new TCanvas("can","histogramy window",600,600);
+		
+		if(baseline==1){
+		       	text.DrawLatex(-100,100,Form("removed baseline %f",mean/adc));
+			cout << Form("removed baseline %f",mean/adc) << endl;
+		}
+
+		myhist->SetTitle(Form("%i histogram from scintillator",nhist));
+		nhist++;
 		myhist->Draw();
 		gPad->WaitPrimitive();
 	}
-	for(int i=0; i<nbins; i++) cout << lines[i] << " ";
-	
-
-	cout << nbin;
-	//cout << nbins;
-	Float_t counts[nbins];
-
-
-
-
-	//mydat.close();
 
 	return kTRUE;
 }

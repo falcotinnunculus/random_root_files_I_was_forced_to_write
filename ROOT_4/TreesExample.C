@@ -8,7 +8,7 @@ using namespace std;
 
 Bool_t GenerateEvents(void){
     
- Int_t nev = 1E6; // liczba zdarzeń do wygenerowania
+ Int_t nev = 5E7; // liczba zdarzeń do wygenerowania
  Double_t px, py;
  
  fstream txtfile("events.txt", ios::out); // otwieram plik tekstowy do zapisu
@@ -19,7 +19,7 @@ Bool_t GenerateEvents(void){
  tree->Branch("py",&py);
  
  for(Int_t i=0; i<nev; i++){ // pętla wypełniająca drzewo i plik tekstowy
-     if(i%1000==0) cout << "Processing event " << i << endl;
+     if(i%(nev/50)==0) cout << "Processing event " << i << endl;
      gRandom->Rannor(px,py); // funkcja zwraca 2 liczby wylosowane zgodnie z rozkładem Gauss: mean=0, sigma=1
      txtfile << px << "\t" << py << endl;
      tree->Fill();
@@ -53,23 +53,23 @@ Bool_t TreesExample(void){
  
 //----- metoda 1 
  
- TCanvas *can = new TCanvas("can","can",1000,600); //tworzę canvas. Uwaga na kolejność: canvas, cd, histogram
- can->Divide(2,1);
- 
- TH1F* h_tree = new TH1F("h_tree", "h_tree", 100, 0, 30); // tworzę histogram
- 
- Int_t ntree = tree->GetEntries();
- Double_t px_tree, py_tree;
- tree->SetBranchAddress("px",&px_tree); // "łączę się" z gałeziami z drzewa
- tree->SetBranchAddress("py",&py_tree);
- 
- for(Int_t i=0; i<ntree; i++){ // iteruję po zdarzeniach w drzewie i wypełniam histogram
-     tree->GetEntry(i);
-     h_tree->Fill(px_tree*px_tree + py_tree*py_tree);
- }
- 
- can->cd(1); // rysowanie histogramu
- h_tree->Draw();
+// TCanvas *can = new TCanvas("can","can",1000,600); //tworzę canvas. Uwaga na kolejność: canvas, cd, histogram
+// can->Divide(2,1);
+// 
+// TH1F* h_tree = new TH1F("h_tree", "h_tree", 100, 0, 30); // tworzę histogram
+// 
+// Int_t ntree = tree->GetEntries();
+// Double_t px_tree, py_tree;
+// tree->SetBranchAddress("px",&px_tree); // "łączę się" z gałeziami z drzewa
+// tree->SetBranchAddress("py",&py_tree);
+// 
+// for(Int_t i=0; i<ntree; i++){ // iteruję po zdarzeniach w drzewie i wypełniam histogram
+//     tree->GetEntry(i);
+//     h_tree->Fill(px_tree*px_tree + py_tree*py_tree);
+// }
+// 
+// can->cd(1); // rysowanie histogramu
+// h_tree->Draw();
 
 //----- koniec metody 1
  
@@ -84,16 +84,16 @@ Bool_t TreesExample(void){
 
  //can->cd(1);  //nie tutaj!
  h_tree->Draw();
- */
+*/
 //----- koniec metody 2
  
 //----- metoda 3 
-/*
+
  TCanvas *can = new TCanvas("can","can",1000,600); //Tworzę canvas. Uwaga na kolejność: canvas, cd, histogram
  can->Divide(2,1); 
  can->cd(1);
  tree->Draw("px*px+py*py","",""); //Wypełniam domyślny histogram wprost z drzewa. Najprostsza metoda, kiedy wskaźnik jest niepotrzebny
-*/
+
 //----- koniec metody 3
 
 //rootfile->Close(); //Ważne - zamykanie pliku z drzewem przy rysowaniu!
@@ -109,7 +109,7 @@ Bool_t TreesExample(void){
  gSystem->Exec("date");
  
  fstream txtfile("events.txt",ios::in); // otwieram plik tekstowy
- Int_t nev = 1E6; 
+ Int_t nev = 5E7; 
  Double_t px,py;
  
  TH1F *h_txt = new TH1F("h_txt","h_txt",100,0,30); // tworzę histogram

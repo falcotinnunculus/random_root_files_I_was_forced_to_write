@@ -103,10 +103,16 @@ dane->Branch("ampl",ampl,"ampl[4]/F");
 dane->Branch("tpocz",tpocz,"tpocz[4]/F");
 
 //tworzenie histgramów
-TH1F *histb = new TH1F("hist_bsl","hist_bsl",NADC,0,NADC);
-TH1F *hista = new TH1F("hist_amp","hist_amp",NADC/10,-NADC,0);
-TH1F *histt = new TH1F("hist_tp","hist_tp",NS,0,NS*DT);
-TH1F *hists = new TH1F("hist_szu","hist_szu",NADC/100,-NADC/100,NADC/100);
+TH1F *histb[NCH];  
+TH1F *hista[NCH];  
+TH1F *histt[NCH]; 
+TH1F *hists[NCH];  
+for(Int_t ii=0;ii<NCH ;ii++){
+    histb[ii] = new TH1F("hist_bsl","hist_bsl",NADC,0,NADC);
+    hista[ii] = new TH1F("hist_amp","hist_amp",NADC/10,-NADC,0);
+    histt[ii] = new TH1F("hist_tp","hist_tp",NS,0,NS*DT);
+    hists[ii] = new TH1F("hist_szu","hist_szu",NADC/100,-NADC/100,NADC/100);
+}
 
 TCanvas *can = new TCanvas("can","can", 1000, 1000);
 can->Divide(2,2);
@@ -157,11 +163,12 @@ if(iz%100==0) cout << endl << "zdarzenie " << iz << ": ";
 	if(iz%100==0) cout << "tp0: " << tpocz[0] << " ";
 
 
-    histb->Fill(baseline[0]);
-    hista->Fill(ampl[0]);
-    histt->Fill(tpocz[0]);
-    for(Int_t i=0; i<NS_BSL; i++) hists->Fill(kanal_sygnal[0][i]);
-
+	for(Int_t ii=0;ii<NCH ;ii++){
+        histb[ii]->Fill(baseline[ii]);
+        hista[ii]->Fill(ampl[ii]);
+        histt[ii]->Fill(tpocz[ii]);
+        for(Int_t i=0; i<NS_BSL; i++) hists[ii]->Fill(kanal_sygnal[ii][i]);
+    }
 
 
 
@@ -176,13 +183,13 @@ Int_t length = iz;
 cout << length << endl;
 
 can->cd(1);
-histb->Draw();
+histb[0]->Draw();
 can->cd(2);
-hista->Draw();
+hista[0]->Draw();
 can->cd(3);
-histt->Draw();
+histt[0]->Draw();
 can->cd(4);
-hists->Draw();
+hists[0]->Draw();
 hists->Fit(funs,"S");
 
 

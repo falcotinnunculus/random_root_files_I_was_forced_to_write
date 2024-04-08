@@ -56,7 +56,7 @@ int poczatek()
 	{
 		for(Int_t i=0; i<NS; i++){
             if(kanal_sygnal[ii][i]<thr){
-			    tpocz[ii] = i;
+			    tpocz[ii] = czas[i];
                 return 1;
             }
 		}
@@ -102,6 +102,17 @@ TTree *dane = new TTree("dane","dane");
 dane->Branch("ampl",ampl,"ampl[4]/F");
 dane->Branch("tpocz",tpocz,"tpocz[4]/F");
 
+//tworzenie histgramów
+TH1F *histb = new TH1F("hist_bsl","hist_bsl",NADC,0,NADC);
+TH1F *hista = new TH1F("hist_amp","hist_amp",NADC/10,-NADC,0);
+TH1F *histt = new TH1F("hist_tp","hist_tp",NS,0,NS*DT);
+TH1F *hists = new TH1F("hist_szu","hist_szu",NADC/100,-NADC/100,NADC/100);
+
+TCanvas *can = new TCanvas("can","can", 1000, 1000);
+can->Divide(2,2);
+
+TF1 *funs = new TF1("funs","gaus",-NADC/100,NADC/100);
+
 
 cout << "pętla po zdarzeniach" << endl;
 
@@ -145,11 +156,35 @@ if(iz%100==0) cout << endl << "zdarzenie " << iz << ": ";
     poczatek(); // wyznacz poczatek impulsu
 	if(iz%100==0) cout << "tp0: " << tpocz[0] << " ";
 
-	dane->Fill();	// zapisz zdarzenie w pliku dane.root
 
+    histb->Fill(baseline[0]);
+    hista->Fill(ampl[0]);
+    histt->Fill(tpocz[0]);
+    for(Int_t i=0; i<NS_BSL; i++) hists->Fill(kanal_sygnal[0][i]);
+
+
+
+
+
+
+    dane->Fill();	// zapisz zdarzenie w pliku dane.root
 
 	iz++;
 }while(end_file==0);
+
+Int_t length = iz;
+cout << length << endl;
+
+can->cd(1);
+histb->Draw();
+can->cd(2);
+hista->Draw();
+can->cd(3);
+histt->Draw();
+can->cd(4);
+hists->Draw();
+hists->Fit(funs,"S");
+
 
 
 // zamknij pliki z impulsami

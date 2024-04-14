@@ -3,7 +3,7 @@
 #include<string>
 using namespace std;
 
-Bool_t zadanie2(string name="wave_0.dat", int baseline=1){
+Bool_t zadanie2(string name="wave_0.dat", int baseline=0){
 
 	gROOT->Reset();
 
@@ -42,16 +42,14 @@ Bool_t zadanie2(string name="wave_0.dat", int baseline=1){
 	tree->Branch("integral",&integral);
 
 
-	TH1F *myhist = new TH1F("histo","histogram from scintillator",nbins,0,nbins);
-	myhist->GetXaxis()->SetTitle("channle number");
-	myhist->GetYaxis()->SetTitle("amplitude [mV]");
-	TLatex text;
+	//TH1F *myhist = new TH1F("histo","histogram from scintillator",nbins,0,nbins);
+	//TLatex text;
 
 	Int_t maxhist = 5000;
 
-	Float_t peaks[maxhist];
-	Float_t t0s[maxhist];
-	Float_t integrals[maxhist];
+	//Float_t peaks[maxhist];
+	//Float_t t0s[maxhist];
+	//Float_t integrals[maxhist];
 
 	for(int i=0; i<nbins; i++) lines[i] = 0;
 	while ((!mydat.eof()) && nhist < maxhist){
@@ -88,11 +86,11 @@ Bool_t zadanie2(string name="wave_0.dat", int baseline=1){
 			}
 		}
 
-		cout << "peak\tthres\tintegr\tt0" <<endl;
-		cout << peak << "\t" << threshold << "\t" << integral << "\t" << t0 <<endl;
-		peaks[nhist] = peak;
-		t0s[nhist] = t0;
-		integrals[nhist] = integral;
+		//cout << "peak\tthres\tintgr\tt0" <<endl;
+		//cout << peak << "\t" << threshold << "\t" << integral << "\t" << t0 <<endl;
+		//peaks[nhist] = peak;
+		//t0s[nhist] = t0;
+		//integrals[nhist] = integral;
 
 		//for(int i=0; i<nbins; i++){
 		//	myhist->SetBinContent(i+1,(lines[i]-mean)/adc);
@@ -113,6 +111,68 @@ Bool_t zadanie2(string name="wave_0.dat", int baseline=1){
 
 	tree->Write();
 	file->Close();
+
+	return kTRUE;
+}
+
+Bool_t Rysuj(){
+
+	TFile *file = new TFile("widmo.root","UPDATE");
+	
+	if(!file->IsOpen()){
+		cout << "plik nie działa" <<endl;
+		return kFALSE;
+	}
+
+	TTree *tree = (TTree*)file->Get("events");
+	Int_t ntree = tree->GetEntries();
+
+	Float_t peak = 0;
+	Float_t t0 = 0;
+	Float_t integral = 0;
+
+	tree->SetBranchAddress("peak",&peak);
+	tree->SetBranchAddress("t0",&t0);
+	tree->SetBranchAddress("integral",&integral);
+
+	TCanvas *can = new TCanvas("can","histogramy window",1500,1000);
+	can->Divide(3,2);
+
+	TH1F* h_peak = new TH1F("h_peak", "h_peak", 100, -3000, 0);
+	h_peak->GetXaxis()->SetTitle("peak amplitude");
+	h_peak->GetYaxis()->SetTitle("count");
+	TH1F* h_t0 = new TH1F("h_t0", "h_t0", 60, 230, 290);
+	h_t0->GetXaxis()->SetTitle("t0");
+	h_t0->GetYaxis()->SetTitle("count");
+	TH1F* h_int = new TH1F("h_int", "h_int", 100, -200000, 0);
+	h_int->GetXaxis()->SetTitle("integrated charge");
+	h_int->GetYaxis()->SetTitle("count");
+	TH2F* h_peakint = new TH2F("h_peakint", "h_peakint", 100, -3000, 0, 100, -200000, 0);
+	h_peakint->GetXaxis()->SetTitle("peak amplitude");
+	h_peakint->GetYaxis()->SetTitle("integrated charge");
+	TH2F* h_intt0 = new TH2F("h_intt0", "h_intt0", 100, -200000, 0, 60, 230, 290);
+	h_intt0->GetXaxis()->SetTitle("integrated charge");
+	h_intt0->GetYaxis()->SetTitle("t0");
+
+	for(Int_t i=0; i<ntree; i++){
+		tree->GetEntry(i);
+		h_peak->Fill(peak);
+		h_t0->Fill(t0);
+		h_int->Fill(integral);
+		h_peakint->Fill(peak,integral);
+		h_intt0->Fill(integral,t0);
+	}
+
+	can->cd(1);
+	h_peak->Draw();
+	can->cd(2);
+	h_t0->Draw();
+	can->cd(3);
+	h_int->Draw();
+	can->cd(4);
+	h_peakint->Draw();
+	can->cd(5);
+	h_intt0->Draw();
 
 	return kTRUE;
 }

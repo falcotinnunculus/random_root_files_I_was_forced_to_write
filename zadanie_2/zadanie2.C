@@ -3,11 +3,11 @@
 #include<string>
 using namespace std;
 
-Bool_t zadanie2(string name="wave_0.dat", int baseline=0){
+Bool_t zadanie2(string name="wave_0.dat", int baseline=1){
 
 	gROOT->Reset();
 
-	TFile *file = new TFile("widmo.root","UPDATE");
+	TFile *file = new TFile("widmo.root","RECREATE");
 	
 	if(!file->IsOpen()){
 		cout << "plik nie działa" <<endl;
@@ -23,7 +23,6 @@ Bool_t zadanie2(string name="wave_0.dat", int baseline=0){
 		cout << "dat nie działa" <<endl;
 		return kFALSE;
 	}
-	else {cout << "dat działa" <<endl;}
 
 	Int_t nhist = 0;
 	Int_t nbins = 1024;
@@ -42,23 +41,16 @@ Bool_t zadanie2(string name="wave_0.dat", int baseline=0){
 	tree->Branch("integral",&integral);
 
 
-	//TH1F *myhist = new TH1F("histo","histogram from scintillator",nbins,0,nbins);
-	//TLatex text;
-
 	Int_t maxhist = 5000;
 
-	//Float_t peaks[maxhist];
-	//Float_t t0s[maxhist];
-	//Float_t integrals[maxhist];
-
 	for(int i=0; i<nbins; i++) lines[i] = 0;
+
 	while ((!mydat.eof()) && nhist < maxhist){
-		peak = 0;
+		peak = 2137;
 		threshold = 0;
 		t0 = 0;
 		integral = 0;
 		
-		cout << Form("printing histogram %i", nhist) << endl; 
 		for(int i=0; i<nbins; i++){
 			mydat.read((char*)&tempx, sizeof(float));
 			lines[i] = tempx;
@@ -86,26 +78,8 @@ Bool_t zadanie2(string name="wave_0.dat", int baseline=0){
 			}
 		}
 
-		//cout << "peak\tthres\tintgr\tt0" <<endl;
-		//cout << peak << "\t" << threshold << "\t" << integral << "\t" << t0 <<endl;
-		//peaks[nhist] = peak;
-		//t0s[nhist] = t0;
-		//integrals[nhist] = integral;
-
-		//for(int i=0; i<nbins; i++){
-		//	myhist->SetBinContent(i+1,(lines[i]-mean)/adc);
-		//}
-		//TCanvas *can = new TCanvas("can","histogramy window",600,600);
-		
-		//if(baseline==1){
-		//       	text.DrawLatex(-100,100,Form("removed baseline %f",mean/adc));
-		//	cout << Form("removed baseline %f",mean/adc) << endl;
-		//}
-
-		//myhist->SetTitle(Form("%i histogram from scintillator",nhist));
 		nhist++;
-		//myhist->Draw();
-		//gPad->WaitPrimitive();
+		
 		tree->Fill();
 	}
 
@@ -117,7 +91,7 @@ Bool_t zadanie2(string name="wave_0.dat", int baseline=0){
 
 Bool_t Rysuj(){
 
-	TFile *file = new TFile("widmo.root","UPDATE");
+	TFile *file = new TFile("widmo.root","READ");
 	
 	if(!file->IsOpen()){
 		cout << "plik nie działa" <<endl;
@@ -169,9 +143,9 @@ Bool_t Rysuj(){
 	h_t0->Draw();
 	can->cd(3);
 	h_int->Draw();
-	can->cd(4);
-	h_peakint->Draw();
 	can->cd(5);
+	h_peakint->Draw();
+	can->cd(6);
 	h_intt0->Draw();
 
 	return kTRUE;

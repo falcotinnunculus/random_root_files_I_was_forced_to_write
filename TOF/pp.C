@@ -206,7 +206,7 @@ printf("data file closed \n");
 
 // zapisz drzewo na pliku dyskowym
 dane->Write();
-
+hfile->Close();
 //return kTRUE;
 
 }

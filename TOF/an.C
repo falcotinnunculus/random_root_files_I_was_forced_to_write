@@ -18,16 +18,19 @@ TH2F *hdt12_dA12;
 // definicja histogramow
 TString name1;
 name1="dt12"; 
-hdt12=new TH1F(name1,name1,200, -20,20);
+hdt12=new TH1F(name1,name1,100, -10,10);
 
 name1="dA12";
 hdA12=new TH1F(name1,name1,200, -1, 1);
 
 name1="dt12 vs dA12";  
-hdt12_dA12=new TH2F(name1,name1,200, -1, 1, 200, -20,20);
+hdt12_dA12=new TH2F(name1,name1,200, -1, 1, 100, -10,10);
 
 name1="A1 vs A2";  
 hA1_A2=new TH2F(name1,name1,200, -4000, 0, 200, -4000,0);
+
+TF1 *funs1 = new TF1("funs","gaus",-20,20);
+TF1 *funs2 = new TF1("funs","gaus",-1,1);
 
 
 // petla po zdarzeniach
@@ -59,17 +62,21 @@ for (Long64_t i=0; i<nentries;i++)
 } // koniec petli po zdarzeniach
 
 
-TCanvas* a = new TCanvas("a", "Histograms", 200,100,1500, 1000); //utworz kanwe
+TCanvas* a = new TCanvas("a", Form("Histograms length=%icm",length), 200,100,1500, 1000); //utworz kanwe
 a->Divide(2,2);	
 a->cd(1);
 hdt12->Draw();
+hdt12->Fit(funs1,"S,R");
 a->cd(2);
 hdt12_dA12->Draw("colz");
 a->cd(3);
 hdA12->Draw();
+hdA12->Fit(funs2,"S,R");
 a->cd(4);
 hA1_A2->Draw("colz");
 a->Update();
+
+//hfile->Close();
 
 return;
 }

@@ -67,7 +67,7 @@ int poczatek()
 }
 
 
-void pp(Int_t debug = 0)
+void pp2(Int_t length, Int_t debug = 0)
 { 
 Int_t end_file=0, iz;
 Double_t sy;
@@ -97,7 +97,7 @@ for(Int_t ii=0;ii<NCH ;ii++)
 
 cout << "tworzenie drzewa" << endl;
 // utworz drzewo
-TString filename = "dane.root";
+TString filename = Form("dane_%i.root",length);
 hfile = TFile::Open(filename,"RECREATE");
 TTree *dane = new TTree("dane","dane");
 dane->Branch("ampl",ampl,"ampl[4]/F");
@@ -207,6 +207,6 @@ printf("data file closed \n");
 // zapisz drzewo na pliku dyskowym
 dane->Write();
 
-return kTRUE;
+//return kTRUE;
 
 }

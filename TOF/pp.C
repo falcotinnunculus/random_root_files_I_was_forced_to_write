@@ -38,7 +38,7 @@ int amplituda()
 {
 	for(Int_t ii=0;ii<NCH ;ii++)
 	{
-		ampl[ii] = 0;
+		ampl[ii] = 2137;
 		for(Int_t i=0; i<NS; i++){
 			ampl[ii] = TMath::Min(ampl[ii],kanal_sygnal[ii][i]);
 		}
@@ -51,13 +51,14 @@ int amplituda()
 // funkcja wyznaczajaca czas poczatku impulsu tpocz
 int poczatek()
 {
-    Double_t thr = -50;
+    Double_t thr = -20;
 	for(Int_t ii=0;ii<NCH ;ii++)
 	{
 		for(Int_t i=0; i<NS; i++){
             if(kanal_sygnal[ii][i]<thr){
 			    tpocz[ii] = czas[i];
-                return 1;
+                //cout <<"ii tpocz:" <<ii << " " << tpocz[ii] << endl;
+                break;
             }
 		}
 
@@ -66,7 +67,7 @@ int poczatek()
 }
 
 
-void pp(void)
+void pp(Int_t debug = 0)
 { 
 Int_t end_file=0, iz;
 Double_t sy;
@@ -108,14 +109,14 @@ TH1F *hista[NCH];
 TH1F *histt[NCH]; 
 TH1F *hists[NCH];  
 for(Int_t ii=0;ii<NCH ;ii++){
-    histb[ii] = new TH1F("hist_bsl","hist_bsl",NADC,0,NADC);
-    hista[ii] = new TH1F("hist_amp","hist_amp",NADC/10,-NADC,0);
-    histt[ii] = new TH1F("hist_tp","hist_tp",NS,0,NS*DT);
-    hists[ii] = new TH1F("hist_szu","hist_szu",NADC/100,-NADC/100,NADC/100);
+    histb[ii] = new TH1F(Form("hist_bsl %i",ii),Form("hist_bsl %i",ii) ,NADC,0,NADC);
+    hista[ii] = new TH1F(Form("hist_amp %i",ii),Form("hist_amp %i",ii) ,NADC/10,-NADC,0);
+    histt[ii] = new TH1F(Form("hist_tp  %i",ii),Form("hist_tp  %i",ii) ,NS,0,NS*DT);
+    hists[ii] = new TH1F(Form("hist_szu %i",ii),Form("hist_szu %i",ii) ,NADC/25,-NADC/100,NADC/100);
 }
 
-TCanvas *can = new TCanvas("can","can", 1000, 1000);
-can->Divide(2,2);
+TCanvas *can = new TCanvas("can","can", 1800, 1200);
+can->Divide(4,4);
 
 TF1 *funs = new TF1("funs","gaus",-NADC/100,NADC/100);
 
@@ -139,6 +140,7 @@ if(iz%100==0) cout << endl << "zdarzenie " << iz << ": ";
 			fp[ii] >> binary_number;
 			kanal_sygnal[ii][i]=binary_number;
 			czas[i]=i*DT;
+            //cout << czas[i] << "\t";
 			}
 			else end_file=1;
 		}
@@ -146,7 +148,7 @@ if(iz%100==0) cout << endl << "zdarzenie " << iz << ": ";
 	}
 
 	bsl(); // wyznacz linie bazowe
-	if(iz%100==0) cout << "bsl0: " << baseline[0] << " ";
+	if(iz%100==0) cout << "bsl2: " << baseline[debug] << " ";
 
 // odejmij linie bazowe od sygralow
 	for(Int_t ii=0;ii<NCH ;ii++)
@@ -157,15 +159,17 @@ if(iz%100==0) cout << endl << "zdarzenie " << iz << ": ";
 		}
 	}
 	amplituda(); // wyznacz amplitude
-	if(iz%100==0) cout << "amp0: " << ampl[0] << " ";
+	if(iz%100==0) cout << "amp2: " << ampl[debug] << " ";
 
     poczatek(); // wyznacz poczatek impulsu
-	if(iz%100==0) cout << "tp0: " << tpocz[0] << " ";
+	if(iz%100==0) cout << "tp2: " << tpocz[debug] << " ";
+    //if(iz%1000==0) for(Int_t i=0; i<NS; i++) cout << kanal_sygnal[debug][i] << "\n";
 
 
 	for(Int_t ii=0;ii<NCH ;ii++){
         histb[ii]->Fill(baseline[ii]);
         hista[ii]->Fill(ampl[ii]);
+        //cout << tpocz[ii] << " ";
         histt[ii]->Fill(tpocz[ii]);
         for(Int_t i=0; i<NS_BSL; i++) hists[ii]->Fill(kanal_sygnal[ii][i]);
     }
@@ -182,17 +186,19 @@ if(iz%100==0) cout << endl << "zdarzenie " << iz << ": ";
 Int_t length = iz;
 cout << length << endl;
 
-can->cd(1);
-histb[0]->Draw();
-can->cd(2);
-hista[0]->Draw();
-can->cd(3);
-histt[0]->Draw();
-can->cd(4);
-hists[0]->Draw();
-hists->Fit(funs,"S");
 
-
+for(Int_t ii=0; ii<NCH; ii++){
+    can->cd(4*ii+1);
+    histb[ii]->Draw();
+    can->cd(4*ii+2);
+    hista[ii]->Draw();
+    can->cd(4*ii+3);
+    histt[ii]->Draw();
+    can->cd(4*ii+4);
+    hists[ii]->Draw();
+    hists[ii]->Fit(funs,"S,R");
+    //gPad->WaitPrimitive();
+}
 
 // zamknij pliki z impulsami
 for(Int_t k=0;k<NCH ;k++)  fp[k].close();
@@ -200,5 +206,7 @@ printf("data file closed \n");
 
 // zapisz drzewo na pliku dyskowym
 dane->Write();
+
+return kTRUE;
 
 }

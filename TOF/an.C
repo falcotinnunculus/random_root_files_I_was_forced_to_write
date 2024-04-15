@@ -18,7 +18,7 @@ TH2F *hdt12_dA12;
 // definicja histogramow
 TString name1;
 name1="dt12"; 
-hdt12=new TH1F(name1,name1,200200200200200200200200200200200200200200200200200200200200, -20,20);
+hdt12=new TH1F(name1,name1,200, -20,20);
 
 
 name1="dt12 vs dA12";  

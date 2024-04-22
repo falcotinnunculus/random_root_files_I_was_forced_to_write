@@ -1,6 +1,15 @@
 #define ndet 4
+#define npom 7
 
-void an2(Int_t length){ 
+Float_t x[npom] = {1,10,20,23,30,40,46};
+Float_t L = 48;
+Float_t xerr[npom] = {1,1,1,1,1,1,1};
+Float_t dt12[npom], dA12[npom], sigmadt12[npom];
+Float_t dt12err[npom], dA12err[npom], sigmadt12err[npom];
+
+Int_t iter = 0;
+
+void an2(Int_t length, Bool_t save = 0){ 
 
 Float_t ampl[ndet], tpocz[ndet];
 Float_t delta_tpocz12, delta_A12;
@@ -76,7 +85,81 @@ a->cd(4);
 hA1_A2->Draw("colz");
 a->Update();
 
+Float_t mean1 = funs1->GetParameter(1);
+Float_t meanerr1 = funs1->GetParError(1);
+Float_t sigma1 = funs1->GetParameter(2);
+Float_t sigmaerr1 = funs1->GetParError(2);
+Float_t mean2 = funs2->GetParameter(1);
+Float_t meanerr2 = funs2->GetParError(1);
+
+//Float_t output[6] = {mean1, meanerr1, sigma1, sigmaerr1, mean2, meanerr2};
+
+//Float_t dt12[npom], dA12[npom], sigmadt12[npom];
+//Float_t dt12err[npom], dA12err[npom], sigmadt12err[npom];
+if(save){
+    dt12[iter] = mean1;
+    dt12err[iter] = meanerr1;
+    sigmadt12[iter] = sigma1;
+    sigmadt12err[iter] = sigmaerr1;
+    dA12[iter] = mean2;
+    dA12err[iter] = meanerr2;
+}
 //hfile->Close();
+
+return ;
+}
+
+void loopn2(){
+    Float_t*  input;
+
+    Float_t mean1[npom];
+    Float_t meanerr1[npom];
+    Float_t sigma1[npom];
+    Float_t sigmaerr1[npom];
+    Float_t mean2[npom];
+    Float_t meanerr2[npom];
+
+    for(Int_t i = 0; i<npom; i++){
+    iter = i;
+    an2(x[i],true);
+        
+
+    }
+
+    TGraphErrors *graph1 = new TGraphErrors(npom,x,dt12,xerr,dt12err);
+    TGraphErrors *graph2 = new TGraphErrors(npom,x,dA12,xerr,dA12err);
+    TGraphErrors *graph3 = new TGraphErrors(npom,x,sigmadt12,xerr,sigmadt12err);
+    
+    graph1->GetXaxis()->SetTitle("x");
+    graph1->GetYaxis()->SetTitle("dt12 [ns]");
+    graph1->SetTitle("dt12(x)");
+    graph2->GetXaxis()->SetTitle("x");
+    graph2->GetYaxis()->SetTitle("dA12 [normalized]");
+    graph2->SetTitle("dA12(x)");
+    graph3->GetXaxis()->SetTitle("x");
+    graph3->GetYaxis()->SetTitle("sigmadt12 [ns]");
+    graph3->SetTitle("sigmadt12(x)");
+
+    TCanvas *can = new TCanvas("gc","gc",1200,800);
+    can->Divide(2,2);
+
+    TF1 *funl = new TF1("funl","pol1",0,50);
+
+    can->cd(1);
+    graph1->Fit(funl,"S,R");
+    graph1->Draw();
+    can->cd(2);
+    graph2->Draw();
+    can->cd(3);
+    graph3->Draw();
+    can->Update();
+
+    Float_t A = funl->GetParameter(1);
+    Float_t B = funl->GetParameter(0);
+    cout << "c = " << -2/A << "cm/ns" << endl;
+    cout << "c = " << L/B << "cm/ns" << endl;
+
+
 
 return;
 }

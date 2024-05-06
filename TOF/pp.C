@@ -139,7 +139,7 @@ if(iz%100==0) cout << endl << "zdarzenie " << iz << ": ";
 			{
 			fp[ii] >> binary_number;
 			kanal_sygnal[ii][i]=binary_number;
-			czas[i]=i*DT;
+			czas[i]=(float) i*DT;
             //cout << czas[i] << "\t";
 			}
 			else end_file=1;

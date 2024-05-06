@@ -9,7 +9,7 @@ Float_t dt12err[npom], dA12err[npom], sigmadt12err[npom];
 
 Int_t iter = 0;
 
-void an2(Int_t length, Bool_t save = 0){ 
+void an2(Int_t length, Bool_t save = 0, Int_t channel1 = 0, Int_t channel2 = 1){ 
 
 Float_t ampl[ndet], tpocz[ndet];
 Float_t delta_tpocz12, delta_A12;
@@ -50,28 +50,30 @@ for (Long64_t i=0; i<nentries;i++)
 	
 	
 		
-	if(tpocz[0]>0 && tpocz[1]>0) 
+	if(tpocz[channel1]>0 && tpocz[channel2]>0) 
 	{
-		delta_tpocz12=tpocz[0]-tpocz[1];
+		delta_tpocz12=tpocz[channel1]-tpocz[channel2];
 		hdt12->Fill(delta_tpocz12); // wypelnienie hdt12
 	}
 
-	if(ampl[0]<0 && ampl[1]<0 && tpocz[0]>0 && tpocz[1]>0) 
+	if(ampl[channel1]<0 && ampl[channel2]<0 && tpocz[channel1]>0 && tpocz[channel2]>0) 
 	{
-		delta_A12=(ampl[0]-ampl[1])/(ampl[0]+ampl[1]);
+		delta_A12=(ampl[channel1]-ampl[channel2])/(ampl[channel1]+ampl[channel2]);
         hdA12->Fill(delta_A12);
 		hdt12_dA12->Fill(delta_A12, delta_tpocz12); // wypelnienie hdt12_dA12
 	}
 
-	if(ampl[0]<0 && ampl[1]<0) 
+	if(ampl[channel1]<0 && ampl[channel2]<0) 
 	{
-        hA1_A2->Fill(ampl[0],ampl[1]);
+        hA1_A2->Fill(ampl[channel1],ampl[channel2]);
     }
 
 } // koniec petli po zdarzeniach
 
 
-TCanvas* a = new TCanvas("a", Form("Histograms length=%icm",length), 200,100,1500, 1000); //utworz kanwe
+TCanvas* a = new TCanvas(Form("a%i%i%i",length,channel1,channel2),
+    Form("Histograms length=%icm channels=%i,%i",length, channel1+1, channel2+1),
+    200,100,1500, 1000); //utworz kanwe
 a->Divide(2,2);	
 a->cd(1);
 hdt12->Draw();

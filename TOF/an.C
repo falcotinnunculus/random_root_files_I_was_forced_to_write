@@ -165,3 +165,48 @@ void loopn2(){
 
 return;
 }
+
+void tof2(Int_t length){
+    
+Float_t ampl[ndet], tpocz[ndet];
+Float_t toftime;
+
+// otworz plik z danymi w formacie root
+TFile *hfile = TFile::Open(Form("dane_%i.root",length)); 
+TTree *dane = (TTree*)hfile->Get("dane");
+dane->SetBranchAddress("ampl",&ampl);
+dane->SetBranchAddress("tpocz",&tpocz);
+
+// utworzenie histogramow
+TH1F *htof;
+
+// definicja histogramow
+TString name1;
+name1="tof"; 
+htof=new TH1F(name1,name1,100, -10,10);
+TF1 *funs1 = new TF1("funs","gaus",-20,20);
+
+// petla po zdarzeniach
+Long64_t nentries = dane->GetEntries(); // wczytuje liczbe zdarzen
+for (Long64_t i=0; i<nentries;i++) 
+{
+	dane->GetEntry(i); // wczytuje zdarzenie
+	
+	
+		
+	if(tpocz[0]>0 && tpocz[1]>0 && tpocz[2]>0 && tpocz[3]>0) 
+	{
+		//delta_tpocz12=tpocz[channel1]-tpocz[channel2];
+        toftime = ((tpocz[0]+tpocz[1]) - (tpocz[2]+tpocz[3]))/2;
+        if(i%10==0) cout << i << " " << tpocz[0] << " " << tpocz[1] << " " << tpocz[2] << " " << tpocz[3] << " " <<
+            toftime << endl;
+		htof->Fill(toftime); // wypelnienie hdt12
+	}
+} // koniec petli po zdarzeniach
+
+TCanvas* a = new TCanvas(Form("t%i",length),
+    Form("Histograms length=%icm tof",length),
+    200,100,1500, 1000); //utworz kanwe
+htof->Draw();
+htof->Fit(funs1,"S,R");
+}

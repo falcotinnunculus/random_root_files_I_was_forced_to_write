@@ -216,6 +216,7 @@ cout << length << endl;
 
 
 for(Int_t ii=0; ii<NCH; ii++){
+    cout << "histogram " << ii << endl;
     can->cd(4*ii+1);
     histb[ii]->Draw();
     can->cd(4*ii+2);
@@ -225,9 +226,10 @@ for(Int_t ii=0; ii<NCH; ii++){
     can->cd(4*ii+4);
     hists[ii]->Draw();
     hists[ii]->Fit(funs,"S,R");
-    //gPad->WaitPrimitive();
+    can->Update();
 }
 
+gPad->WaitPrimitive();
 // zamknij pliki z impulsami
 for(Int_t k=0;k<NCH ;k++)  fp[k].close();
 printf("data file closed \n");

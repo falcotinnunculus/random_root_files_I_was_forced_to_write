@@ -187,7 +187,7 @@ if(iz%100==0) cout << endl << "zdarzenie " << iz << ": ";
 	amplituda(); // wyznacz amplitude
 	if(iz%100==0) cout << "amp2: " << ampl[debug] << " ";
 
-    poczatek(); // wyznacz poczatek impulsu
+    poczatek2(); // wyznacz poczatek impulsu
 	if(iz%100==0) cout << "tp2: " << tpocz[debug] << " ";
     //if(iz%1000==0) for(Int_t i=0; i<NS; i++) cout << kanal_sygnal[debug][i] << "\n";
 

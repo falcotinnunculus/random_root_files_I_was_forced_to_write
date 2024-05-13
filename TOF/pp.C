@@ -57,7 +57,7 @@ int poczatek()
 		for(Int_t i=0; i<NS; i++){
             if(kanal_sygnal[ii][i]<thr){
 			    tpocz[ii] = czas[i];
-                //cout <<"ii tpocz:" <<ii << " " << tpocz[ii] << endl;
+                cout <<"ii tpocz:" <<ii << " " << tpocz[ii] << endl;
                 break;
             }
 		}
@@ -70,11 +70,12 @@ int poczatek()
 int poczatek2()
 {
     Double_t thr1 = -20;
-    Double_t thr2 = -40;
-    Int_t isthr = 0; // sprawdza ktory prog jest teraz wyznaczany
+    Double_t thr2 = -47;
+    Int_t isthr; // sprawdza ktory prog jest teraz wyznaczany
     Double_t t1, t2;
 	for(Int_t ii=0;ii<NCH ;ii++)
 	{
+        isthr = 0;
 		for(Int_t i=0; i<NS; i++){
             if(kanal_sygnal[ii][i]<thr1 && isthr == 0){
 			    t1 = czas[i];
@@ -83,12 +84,13 @@ int poczatek2()
             if(kanal_sygnal[ii][i]<thr2 && isthr == 1){
 			    t2 = czas[i];
                 isthr = 2;
-                break;
+                //break;
             }
 		}
 
-        tpocz[ii] = t2 - (t2-t1);
+        tpocz[ii] = (thr2 * t1 - thr1 * t2)/(thr2 - thr1);
 
+        //cout <<"ii t1 t2 tpocz:" <<ii << " " << " " << t1 << " " << t2 << " " << tpocz[ii] << endl;
 	}
 	return 0;
 }

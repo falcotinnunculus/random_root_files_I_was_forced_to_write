@@ -67,6 +67,32 @@ int poczatek()
 }
 
 
+int poczatek2()
+{
+    Double_t thr1 = -20;
+    Double_t thr2 = -40;
+    Int_t isthr = 0; // sprawdza ktory prog jest teraz wyznaczany
+    Double_t t1, t2;
+	for(Int_t ii=0;ii<NCH ;ii++)
+	{
+		for(Int_t i=0; i<NS; i++){
+            if(kanal_sygnal[ii][i]<thr1 && isthr == 0){
+			    t1 = czas[i];
+                isthr = 1;
+            }
+            if(kanal_sygnal[ii][i]<thr2 && isthr == 1){
+			    t2 = czas[i];
+                isthr = 2;
+                break;
+            }
+		}
+
+        tpocz[ii] = t2 - (t2-t1);
+
+	}
+	return 0;
+}
+
 void pp2(Int_t length, Int_t debug = 0)
 { 
 Int_t end_file=0, iz;

@@ -1,4 +1,5 @@
 #define ndet 16
+Float_t xscale = 17.5;
 
 void widma2(void){ 
 
@@ -41,9 +42,9 @@ for(Int_t ii=0;ii<ndet ;ii++)
 	name1="QZ1+QZ2 for detector";   name1+=ii+1;
 	hQZ1P2[ii]=new TH1F(name1,name1,100, 0,8200);
 	name1="X for detector";   name1+=ii+1;
-	hQX[ii]=new TH1F(name1,name1,100, -1,1);
+	hQX[ii]=new TH1F(name1,name1,100, -xscale,xscale);
 	name1="Z for detector";   name1+=ii+1;
-	hQZ[ii]=new TH1F(name1,name1,100, -1,1);
+	hQZ[ii]=new TH1F(name1,name1,100, -xscale,xscale);
 
 	name1="QX2 vs QX1 for detector";   name1+=ii+1;
 	hQX12[ii]=new TH2F(name1,name1,100, 0,8200, 100, 0,8200);
@@ -52,7 +53,7 @@ for(Int_t ii=0;ii<ndet ;ii++)
 	name1="QX1+QX2 vs QZ1+QZ2 for detector";   name1+=ii+1;
 	hQXPZP[ii]=new TH2F(name1,name1,100, 0,8200, 100, 0,8200);
 	name1="X vs Z for detector";   name1+=ii+1;
-	hQXZ[ii]=new TH2F(name1,name1,100, -1,1, 100, -1,1);
+	hQXZ[ii]=new TH2F(name1,name1,100, -xscale,xscale, 100, -xscale,xscale);
 }
 TH1* hmult = new TH1F("hmult", "hmult", 16, 0, 16);
 
@@ -66,6 +67,17 @@ for (Long64_t i=0; i<nentries;i++)
 	Int_t mult =0; // liczba detektorow z ktorych sygnaly przekroczyly odpowiednie progi
 	for(Int_t ii=0;ii<ndet ;ii++) // petla po detektorach
 	{		
+// sprawdz czy sygnaly przekraczaja prog
+		if((QX1[ii]>Qthr) && (QX2[ii]>Qthr) && (QZ1[ii]>Qthr) && (QZ2[ii]>Qthr)) 
+		{  
+			mult++;
+// tutaj można wstawić wypelnianie roznych histogramow			
+
+		//}
+        //else{
+            //continue;
+            //break;
+        //}
 		hQX1[ii]->Fill(QX1[ii]); // wypelnienie histogramu hQX1 dla detektora ii
 		hQX2[ii]->Fill(QX2[ii]); // wypelnienie histogramu hQX2
 		hQX12[ii]->Fill(QX1[ii],QX2[ii]); // wypelnienie histogramu hQX12
@@ -75,18 +87,12 @@ for (Long64_t i=0; i<nentries;i++)
 		hQX1P2[ii]->Fill(QX1[ii]+QX2[ii]); 
 		hQZ1P2[ii]->Fill(QZ1[ii]+QZ2[ii]);
 		hQXPZP[ii]->Fill(QX1[ii]+QX2[ii],QZ1[ii]+QZ2[ii]);
-        X[ii] = ((Float_t)QX1[ii]-(Float_t)QX2[ii])/((Float_t)QX1[ii]+(Float_t)QX2[ii]);
-		hQX[ii]->Fill(X[ii]);
-        Z[ii] = ((Float_t)QZ1[ii]-(Float_t)QZ2[ii])/((Float_t)QZ1[ii]+(Float_t)QZ2[ii]);
-		hQZ[ii]->Fill(Z[ii]);
-		hQXZ[ii]->Fill(X[ii],Z[ii]);
-// sprawdz czy sygnaly przekraczaja prog
-		if((QX1[ii]>Qthr) && (QX2[ii]>Qthr) && (QZ1[ii]>Qthr) && (QZ2[ii]>Qthr)) 
-		{  
-			mult++;
-// tutaj można wstawić wypelnianie roznych histogramow			
-
-		}
+        X[ii] = ((Float_t)QX2[ii]-(Float_t)QX1[ii])/((Float_t)QX1[ii]+(Float_t)QX2[ii]);
+		hQX[ii]->Fill(X[ii]*xscale);
+        Z[ii] = ((Float_t)QZ2[ii]-(Float_t)QZ1[ii])/((Float_t)QZ1[ii]+(Float_t)QZ2[ii]);
+		hQZ[ii]->Fill(Z[ii]*xscale);
+		hQXZ[ii]->Fill(X[ii]*xscale,Z[ii]*xscale);
+        }
 	}
 	hmult->Fill(mult); // wypelnienie histogramu z krotnoscia odpowiedzi detektorow
 
@@ -99,7 +105,7 @@ for(Int_t ii=0;ii<ndet ;ii++)
 {
 	a->cd(ii+1);
 	hQX1[ii]->Draw();
-	gPad->SetLogy();
+	//gPad->SetLogy();
 	a->Update();
 }
 a->WaitPrimitive(); // program czeka w tym miejscu na klikniecie myszka na kanwe
@@ -110,7 +116,7 @@ for(Int_t ii=0;ii<ndet ;ii++)
 {
 	b->cd(ii+1);
 	hQX2[ii]->Draw();
-	gPad->SetLogy();
+	//gPad->SetLogy();
 	b->Update();
 }
 b->WaitPrimitive();
@@ -131,7 +137,7 @@ for(Int_t ii=0;ii<ndet ;ii++)
 {
 	a2->cd(ii+1);
 	hQZ1[ii]->Draw();
-	gPad->SetLogy();
+	//gPad->SetLogy();
 	a2->Update();
 }
 a2->WaitPrimitive(); // program czeka w tym miejscu na klikniecie myszka na kanwe
@@ -142,7 +148,7 @@ for(Int_t ii=0;ii<ndet ;ii++)
 {
 	b2->cd(ii+1);
 	hQZ2[ii]->Draw();
-	gPad->SetLogy();
+	//gPad->SetLogy();
 	b2->Update();
 }
 b2->WaitPrimitive();
@@ -164,7 +170,7 @@ for(Int_t ii=0;ii<ndet ;ii++)
 {
 	a3->cd(ii+1);
 	hQX1P2[ii]->Draw();
-	gPad->SetLogy();
+	//gPad->SetLogy();
 	a3->Update();
 }
 a3->WaitPrimitive(); // program czeka w tym miejscu na klikniecie myszka na kanwe
@@ -175,7 +181,7 @@ for(Int_t ii=0;ii<ndet ;ii++)
 {
 	b3->cd(ii+1);
 	hQZ1P2[ii]->Draw();
-	gPad->SetLogy();
+	//gPad->SetLogy();
 	b3->Update();
 }
 b3->WaitPrimitive();
@@ -197,7 +203,7 @@ for(Int_t ii=0;ii<ndet ;ii++)
 {
 	a4->cd(ii+1);
 	hQX[ii]->Draw();
-	gPad->SetLogy();
+	////gPad->SetLogy();
 	a4->Update();
 }
 a4->WaitPrimitive(); // program czeka w tym miejscu na klikniecie myszka na kanwe
@@ -208,7 +214,7 @@ for(Int_t ii=0;ii<ndet ;ii++)
 {
 	b4->cd(ii+1);
 	hQZ[ii]->Draw();
-	gPad->SetLogy();
+	////gPad->SetLogy();
 	b4->Update();
 }
 b4->WaitPrimitive();

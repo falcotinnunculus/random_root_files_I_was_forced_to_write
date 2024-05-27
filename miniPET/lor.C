@@ -19,6 +19,8 @@ Int_t Qthr=400; // ustawienie progu dyskryminacji impulsow
 Int_t QX1[ndet], QX2[ndet], QZ1[ndet], QZ2[ndet], QX[ndet], QZ[ndet]; 
 Float_t X[ndet], Z[ndet];
 Float_t x[2], y[2];
+Float_t xx, yy;
+Float_t A, B, s, phi;
 
 // otworz plik z danymi w formacie root
 TFile *hfile = TFile::Open("QDC.root"); 
@@ -53,6 +55,8 @@ name2="y";
 TH1F *hy=new TH1F(name2,name2,100, -R*1.2,R*1.2);
 name2="x vs y";
 TH2F *hxy=new TH2F(name2,name2,200,-100,100,200,-100,100);
+name2="s vs phi";
+TH2F *hsphi=new TH2F(name2,name2,200,-100,100,200,-2,2);
 
 // petla po zdarzeniach
 Long64_t nentries = tree->GetEntries(); // wczytuje liczbe zdarzen
@@ -90,6 +94,20 @@ for (Long64_t i=0; i<nentries;i++)
             hx->Fill(x[1]);
             hy->Fill(y[1]);
             hxy->Fill(x[1],y[1]);
+
+//for(int iii=0; iii<400; iii++)
+//{
+//    xx=x[1]+(float)iii/400.0*(x[2]-x[1]); yy=y[1]+(float)iii/400.0*(y[2]-y[1]);
+//    hxy->Fill(xx,yy);
+//}
+
+        A = (y[1]-y[0])/(x[1]-x[0]);
+        B = (y[0]*x[1]-y[1]*x[0])/(x[1]-x[0]);
+        s = (B)/(TMath::Sqrt(A*A+1));
+        phi = TMath::ATan(-1/A);
+
+        hsphi->Fill(s,phi);
+
             break;
         }
         
@@ -100,39 +118,8 @@ for (Long64_t i=0; i<nentries;i++)
 
 
 
-TCanvas* a4 = new TCanvas("a4", "Histograms", 200,100,800, 800); //utworz kanwe
-a4->Divide(4,4);	
-for(Int_t ii=0;ii<ndet ;ii++)
-{
-	a4->cd(ii+1);
-	hQX[ii]->Draw();
-	////gPad->SetLogy();
-	a4->Update();
-}
-a4->WaitPrimitive(); // program czeka w tym miejscu na klikniecie myszka na kanwe
 
-TCanvas* b4 = new TCanvas("b4", "Histograms", 200,100,800, 800); //utworz kanwe
-b4->Divide(4,4);	
-for(Int_t ii=0;ii<ndet ;ii++)
-{
-	b4->cd(ii+1);
-	hQZ[ii]->Draw();
-	////gPad->SetLogy();
-	b4->Update();
-}
-b4->WaitPrimitive();
-
-TCanvas* c4 = new TCanvas("c4", "Histograms", 200,160, 800, 800); //utworz kanwe
-c4->Divide(4,4);	
-for(Int_t ii=0;ii<ndet ;ii++)
-{
-	c4->cd(ii+1);
-	hQXZ[ii]->Draw("colz");
-	c4->Update();
-}
-c4->WaitPrimitive();
-
-TCanvas* d4 = new TCanvas("d4", "Histograms", 200,160, 800, 800); //utworz kanwe
+TCanvas* d4 = new TCanvas("d4", "Histograms", 200,160, 1200, 1200); //utworz kanwe
 d4->Divide(2,2);	
 d4->cd(1);
 hx->Draw();
@@ -140,8 +127,10 @@ d4->cd(2);
 hy->Draw();
 d4->cd(3);
 hxy->Draw();
+d4->cd(4);
+hsphi->Draw("colz");
 d4->Update();
-d4->WaitPrimitive();
+//d4->WaitPrimitive();
 
 return;
 }

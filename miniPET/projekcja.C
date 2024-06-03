@@ -16,6 +16,8 @@ Float_t gety(Float_t X, Int_t det)
     return R * TMath::Cos(alpha) - X * TMath::Sin(alpha);
 }
 
+float π = TMath::Pi;
+
 void projekcja(void)
 {
 
@@ -26,6 +28,11 @@ void projekcja(void)
     Float_t xx, yy, x0, y0;
     Float_t A, B, s, phi, ds, dphi;
     Int_t zlicz;
+
+    Double_t pro[nbin]; // projekcja przy ustalonym kącie (uwaga: na początku skryptu umieszczono: #define nbin 200)
+    Double_t P_re[nbin], P_im[nbin]; // jednowymiarowa transformata Fouriera projekcji (część rzeczywista i urojona)
+    Double_t Q_re[nbin], Q_im[nbin]; // przefiltrowana transformata Fouriera projekcji (część rzeczywista i urojona)
+    Double_t q_re[nbin], q_im[nbin]; // odwrotna transformata Fouriera (część rzeczywista i urojona)
 
     // otworz plik z danymi w formacie root
     TFile *hfile = TFile::Open("QDC.root");
@@ -67,6 +74,8 @@ void projekcja(void)
     TH2F *hsphi = new TH2F(name2, name2, 200, -100, 100, 200, -2, 2);
     name2 = "x vs y";
     TH2F *hxy = new TH2F(name2, name2, 200, -100, 100, 200, -100, 100);
+    name2 = "s vs phi filtr";
+    TH2F *hsphi_filtr = new TH2F(name2, name2, 200, -100, 100, 200, -2, 2);
 
     // petla po zdarzeniach
     Long64_t nentries = tree->GetEntries(); // wczytuje liczbe zdarzen
@@ -151,22 +160,79 @@ void projekcja(void)
                     xx = (yy - B) / A;
                     hxy->Fill(xx, yy, zlicz);
                 }
-        }
-    }
+        } //koniec pętli po s
+    } //koniec pętli po φ
 
-    //    TCanvas* d4 = new TCanvas("d4", "Histograms", 200,160, 1200, 1200); //utworz kanwe
-    TCanvas* e4 = new TCanvas("e4", "Histograms", 200, 160, 1200, 1200); //utworz kanwe
-    //    d4->Divide(2,2);
+
+    // filtracja sinogramu
+
+
+    for (int iphi = 0; iphi < nbin; iphi++) // pętla po przedziałach kata
+    {
+        for (int is = 0; is < nbin; is++) pro[is] = hsphi->GetBinContent(is + 1, iphi + 1); // wczytaj projekcję dla danego kata
+        // transformata Fouriera projekcji
+        for (int m = 0; m < nbin; m++)
+        {
+            //
+            // tutaj wstawić odpowiedni kod wyliczający P_re[m ], P_im[m ]
+
+            P_re[m] = 0;
+            P_im[m] = 0;
+            for (int k = 0; k < nbin; k++)
+            {
+                P_re[m] += pro[k] * TMath::Cos(-2 * π*(float)k * (float)m / (float)nbin);
+                P_im[m] -= pro[k] * TMath::Sin(-2 * π*(float)k * (float)m / (float)nbin);
+
+            }
+            cout << "iphi m Pre[m] Pim[m]" << iphi << " " << m << " " << P_re[m] << " " << P_im[m] << endl;
+        } //koniec pierwszej pętli po ω
+        // filtr
+        for (int m = 0; m < nbin; m++)
+        {
+            if (m < nbin / 2)
+            {
+                Q_re[m] = P_re[m] * (double)m;
+                Q_im[m] = P_im[m] * (double)m;
+            }
+            else
+            {
+                Q_re[m] = 0.;
+                Q_im[m] = 0.;
+            }
+            cout << "iphi m Qre[m] Qim[m]" << iphi << " " << m << " " << Q_re[m] << " " << Q_im[m] << endl;
+        }
+        // odwrotna transformata Fouriera
+        for (int k = 0; k < nbin; k++)
+        {
+            //
+            // tutaj wstawić odpowiedni kod wyliczający q_re[k ], q_im[k ]
+            q_re[k] = 0;
+            q_im[k] = 0;
+            for (int m = 0; m < nbin; m++)
+            {
+                q_re[k] += Q_re[m] * TMath::Cos(2 * π*(float)k * (float)m / (float)nbin) + Q_im[m] * TMath::Sin(2 * π*(float)k * (float)m / (float)nbin);
+                q_im[k] += -Q_re[m] * TMath::Sin(2 * π*(float)k * (float)m / (float)nbin) + Q_im[m] * TMath::Cos(2 * π*(float)k * (float)m / (float)nbin);
+            }
+            cout << "iphi k qre[k] qim[k]" << iphi << " " << k << " " << q_re[k] << " " << q_im[k] << endl;
+            hsphi_filtr->SetBinContent(k + 1, iphi + 1, q_re[k]); // wypełnianie przefiltrowanego sinogramu
+        } //koniec pętli po k
+    } //koniec pętli po iφ
+
+    TCanvas* d4 = new TCanvas("d4", "Histograms", 200, 160, 1200, 1200); //utworz kanwe
+    TCanvas* e4 = new TCanvas("e4", "Histograms_del", 200, 160, 1200, 1200); //utworz kanwe
+    d4->Divide(2, 1);
     //    d4->cd(1);
     //    hx->Draw();
     //    d4->cd(2);
     //    hy->Draw();
-    //    d4->cd(3);
+    d4->cd(1);
     //    holdxy->Draw();
     //    d4->cd(4);
-    //    hsphi->Draw("colz");
-    //    d4->Update();
-    //    d4->WaitPrimitive();
+    hsphi->Draw("colz");
+    d4->cd(2);
+    hsphi_filtr->Draw("colz");
+    d4->Update();
+    d4->WaitPrimitive();
     e4->Divide(1, 1);
     e4->cd(1);
     hxy->Draw("colz");

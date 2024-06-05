@@ -76,6 +76,8 @@ void projekcja(void)
     TH2F *hxy = new TH2F(name2, name2, 200, -100, 100, 200, -100, 100);
     name2 = "s vs phi filtr";
     TH2F *hsphi_filtr = new TH2F(name2, name2, 200, -100, 100, 200, -2, 2);
+    name2 = "x vs y filtr";
+    TH2F *hxy_filtr = new TH2F(name2, name2, 200, -100, 100, 200, -100, 100);
 
     // petla po zdarzeniach
     Long64_t nentries = tree->GetEntries(); // wczytuje liczbe zdarzen
@@ -118,9 +120,9 @@ void projekcja(void)
 
                     A = (y[1] - y[0]) / (x[1] - x[0]);
                     B = (y[0] * x[1] - y[1] * x[0]) / (x[1] - x[0]);
-                    s = (B) / (TMath::Sqrt(A * A + 1));
+                    s = -(B*A) / (TMath::Sqrt(A * A + 1) * TMath::Abs(A));
                     phi = TMath::ATan(-1 / A);
-
+                    cout << "A B s phi " << A << " " << B << " " << s << " " << phi << endl;
                     hsphi->Fill(s, phi);
 
                     break;
@@ -152,12 +154,14 @@ void projekcja(void)
                 {
                     xx = -100 + 1. / 2. + ι;
                     yy = A * xx + B;
+                    //cout << "A<1 xx yy zlicz " << xx << " " <<yy<" "<<zlicz<<endl;
                     hxy->Fill(xx, yy, zlicz);
                 }
             if (TMath::Abs(A) > 1) for (float ι = 0; ι < nbin; ι++)
                 {
                     yy = -100 + 1. / 2. + ι;
                     xx = (yy - B) / A;
+                    //cout << "A>1 xx yy zlicz " << xx << " " <<yy<" "<<zlicz<<endl;
                     hxy->Fill(xx, yy, zlicz);
                 }
         } //koniec pętli po s
@@ -169,6 +173,7 @@ void projekcja(void)
 
     for (int iphi = 0; iphi < nbin; iphi++) // pętla po przedziałach kata
     {
+        cout << iphi << endl;
         for (int is = 0; is < nbin; is++) pro[is] = hsphi->GetBinContent(is + 1, iphi + 1); // wczytaj projekcję dla danego kata
         // transformata Fouriera projekcji
         for (int m = 0; m < nbin; m++)
@@ -184,22 +189,24 @@ void projekcja(void)
                 P_im[m] -= pro[k] * TMath::Sin(-2 * π*(float)k * (float)m / (float)nbin);
 
             }
-            cout << "iphi m Pre[m] Pim[m]" << iphi << " " << m << " " << P_re[m] << " " << P_im[m] << endl;
+            //cout << "iphi m Pre[m] Pim[m]" << iphi << " " << m << " " << P_re[m] << " " << P_im[m] << endl;
         } //koniec pierwszej pętli po ω
         // filtr
         for (int m = 0; m < nbin; m++)
         {
-            if (m < nbin / 2)
-            {
-                Q_re[m] = P_re[m] * (double)m;
-                Q_im[m] = P_im[m] * (double)m;
-            }
-            else
-            {
-                Q_re[m] = 0.;
-                Q_im[m] = 0.;
-            }
-            cout << "iphi m Qre[m] Qim[m]" << iphi << " " << m << " " << Q_re[m] << " " << Q_im[m] << endl;
+//            if (m < nbin / 2)
+//            {
+//                Q_re[m] = P_re[m] * (double)m;
+//                Q_im[m] = P_im[m] * (double)m;
+//            }
+//            else
+//            {
+//                Q_re[m] = 0.;
+//                Q_im[m] = 0.;
+//            }
+            Q_re[m]=P_re[m];
+            Q_im[m]=P_im[m];
+            //cout << "iphi m Qre[m] Qim[m]" << iphi << " " << m << " " << Q_re[m] << " " << Q_im[m] << endl;
         }
         // odwrotna transformata Fouriera
         for (int k = 0; k < nbin; k++)
@@ -213,14 +220,14 @@ void projekcja(void)
                 q_re[k] += Q_re[m] * TMath::Cos(2 * π*(float)k * (float)m / (float)nbin) + Q_im[m] * TMath::Sin(2 * π*(float)k * (float)m / (float)nbin);
                 q_im[k] += -Q_re[m] * TMath::Sin(2 * π*(float)k * (float)m / (float)nbin) + Q_im[m] * TMath::Cos(2 * π*(float)k * (float)m / (float)nbin);
             }
-            cout << "iphi k qre[k] qim[k]" << iphi << " " << k << " " << q_re[k] << " " << q_im[k] << endl;
+            //cout << "iphi k qre[k] qim[k]" << iphi << " " << k << " " << q_re[k] << " " << q_im[k] << endl;
             hsphi_filtr->SetBinContent(k + 1, iphi + 1, q_re[k]); // wypełnianie przefiltrowanego sinogramu
         } //koniec pętli po k
     } //koniec pętli po iφ
 
     TCanvas* d4 = new TCanvas("d4", "Histograms", 200, 160, 1200, 1200); //utworz kanwe
-    TCanvas* e4 = new TCanvas("e4", "Histograms_del", 200, 160, 1200, 1200); //utworz kanwe
-    d4->Divide(2, 1);
+//    TCanvas* e4 = new TCanvas("e4", "Histograms_del", 200, 160, 1200, 1200); //utworz kanwe
+    d4->Divide(2, 2);
     //    d4->cd(1);
     //    hx->Draw();
     //    d4->cd(2);
@@ -231,12 +238,14 @@ void projekcja(void)
     hsphi->Draw("colz");
     d4->cd(2);
     hsphi_filtr->Draw("colz");
-    d4->Update();
-    d4->WaitPrimitive();
-    e4->Divide(1, 1);
-    e4->cd(1);
+//    d4->Update();
+//    d4->WaitPrimitive();
+ //   e4->Divide(1, 1);
+    d4->cd(3);
     hxy->Draw("colz");
-    e4->WaitPrimitive();
+//    e4->WaitPrimitive();
+    d4->cd(4);
+    hxy_filtr->Draw("colz");
 
     return;
 }

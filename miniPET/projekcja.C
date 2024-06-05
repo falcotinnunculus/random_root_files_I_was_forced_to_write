@@ -16,11 +16,11 @@ Float_t gety(Float_t X, Int_t det)
     return R * TMath::Cos(alpha) - X * TMath::Sin(alpha);
 }
 
-float π = TMath::Pi;
+float π = TMath::Pi();
 
 void projekcja(void)
 {
-
+    cout << "pi " << π;
     Int_t Qthr = 400; // ustawienie progu dyskryminacji impulsow
     Int_t QX1[ndet], QX2[ndet], QZ1[ndet], QZ2[ndet], QX[ndet], QZ[ndet];
     Float_t X[ndet], Z[ndet];
@@ -120,9 +120,9 @@ void projekcja(void)
 
                     A = (y[1] - y[0]) / (x[1] - x[0]);
                     B = (y[0] * x[1] - y[1] * x[0]) / (x[1] - x[0]);
-                    s = -(B*A) / (TMath::Sqrt(A * A + 1) * TMath::Abs(A));
+                    s = -(B * A) / (TMath::Sqrt(A * A + 1) * TMath::Abs(A));
                     phi = TMath::ATan(-1 / A);
-                    cout << "A B s phi " << A << " " << B << " " << s << " " << phi << endl;
+                    //cout << "A B s phi " << A << " " << B << " " << s << " " << phi << endl;
                     hsphi->Fill(s, phi);
 
                     break;
@@ -185,8 +185,8 @@ void projekcja(void)
             P_im[m] = 0;
             for (int k = 0; k < nbin; k++)
             {
-                P_re[m] += pro[k] * TMath::Cos(-2 * π*(float)k * (float)m / (float)nbin);
-                P_im[m] -= pro[k] * TMath::Sin(-2 * π*(float)k * (float)m / (float)nbin);
+                P_re[m] += pro[k] * TMath::Cos(-2. * π * (float)k * (float)m / (float)nbin);
+                P_im[m] += pro[k] * TMath::Sin(-2. * π * (float)k * (float)m / (float)nbin);
 
             }
             //cout << "iphi m Pre[m] Pim[m]" << iphi << " " << m << " " << P_re[m] << " " << P_im[m] << endl;
@@ -194,18 +194,18 @@ void projekcja(void)
         // filtr
         for (int m = 0; m < nbin; m++)
         {
-//            if (m < nbin / 2)
-//            {
-//                Q_re[m] = P_re[m] * (double)m;
-//                Q_im[m] = P_im[m] * (double)m;
-//            }
-//            else
-//            {
-//                Q_re[m] = 0.;
-//                Q_im[m] = 0.;
-//            }
-            Q_re[m]=P_re[m];
-            Q_im[m]=P_im[m];
+            if (m < nbin / 2)
+            {
+                Q_re[m] = P_re[m] * (double)m;
+                Q_im[m] = P_im[m] * (double)m;
+            }
+            else
+            {
+                Q_re[m] = 0.;
+                Q_im[m] = 0.;
+            }
+            //Q_re[m]=P_re[m];
+            //Q_im[m]=P_im[m];
             //cout << "iphi m Qre[m] Qim[m]" << iphi << " " << m << " " << Q_re[m] << " " << Q_im[m] << endl;
         }
         // odwrotna transformata Fouriera
@@ -217,17 +217,54 @@ void projekcja(void)
             q_im[k] = 0;
             for (int m = 0; m < nbin; m++)
             {
-                q_re[k] += Q_re[m] * TMath::Cos(2 * π*(float)k * (float)m / (float)nbin) + Q_im[m] * TMath::Sin(2 * π*(float)k * (float)m / (float)nbin);
-                q_im[k] += -Q_re[m] * TMath::Sin(2 * π*(float)k * (float)m / (float)nbin) + Q_im[m] * TMath::Cos(2 * π*(float)k * (float)m / (float)nbin);
+                q_re[k] += Q_re[m] * TMath::Cos(2. * π * (float)k * (float)m / (float)nbin) - Q_im[m] * TMath::Sin(2. * π * (float)k * (float)m / (float)nbin);
+                q_im[k] += -Q_re[m] * TMath::Sin(2. * π * (float)k * (float)m / (float)nbin) + Q_im[m] * TMath::Cos(2. * π * (float)k * (float)m / (float)nbin);
             }
             //cout << "iphi k qre[k] qim[k]" << iphi << " " << k << " " << q_re[k] << " " << q_im[k] << endl;
             hsphi_filtr->SetBinContent(k + 1, iphi + 1, q_re[k]); // wypełnianie przefiltrowanego sinogramu
         } //koniec pętli po k
     } //koniec pętli po iφ
 
+
+    //firtlowana projekcja wsteczna
+    dphi = 4. / 200.;
+    phi = -2 - dphi / 2.;
+    ds = 200. / 200.;
+
+    for (int varphi = 0; varphi < nbin; varphi++) //pętla po φ
+    {
+        phi += dphi;
+        s = -100 - ds / 2.;
+        for (int σ = 0; σ < nbin; σ++) //pętla po s
+        {
+            s += ds;
+            zlicz = hsphi_filtr->GetBinContent(σ +1, varphi + 1);
+            if (zlicz == 0) continue;
+            x0 = s * TMath::Cos(phi);
+            y0 = s * TMath::Sin(phi);
+            A = -x0 / y0;
+            B = y0 - A * x0;
+            if (TMath::Abs(A) <= 1) for (float ι = 0; ι < nbin; ι++)
+                {
+                    xx = -100 + 1. / 2. + ι;
+                    yy = A * xx + B;
+                    //cout << "A<1 xx yy zlicz " << xx << " " <<yy<" "<<zlicz<<endl;
+                    hxy_filtr->Fill(xx, yy, zlicz);
+                }
+            if (TMath::Abs(A) > 1) for (float ι = 0; ι < nbin; ι++)
+                {
+                    yy = -100 + 1. / 2. + ι;
+                    xx = (yy - B) / A;
+                    //cout << "A>1 xx yy zlicz " << xx << " " <<yy<" "<<zlicz<<endl;
+                    hxy_filtr->Fill(xx, yy, zlicz);
+                }
+        } //koniec pętli po s
+    } //koniec pętli po φ
+
+    gStyle->SetOptStat(0);
     TCanvas* d4 = new TCanvas("d4", "Histograms", 200, 160, 1200, 1200); //utworz kanwe
 //    TCanvas* e4 = new TCanvas("e4", "Histograms_del", 200, 160, 1200, 1200); //utworz kanwe
-    d4->Divide(2, 2);
+    //d4->Divide(2, 2);
     //    d4->cd(1);
     //    hx->Draw();
     //    d4->cd(2);
@@ -236,16 +273,20 @@ void projekcja(void)
     //    holdxy->Draw();
     //    d4->cd(4);
     hsphi->Draw("colz");
-    d4->cd(2);
+    //d4->cd(2);
+    //d4->WaitPrimitive();
     hsphi_filtr->Draw("colz");
 //    d4->Update();
-//    d4->WaitPrimitive();
- //   e4->Divide(1, 1);
-    d4->cd(3);
+    //d4->WaitPrimitive();
+//   e4->Divide(1, 1);
+    //d4->cd(3);
     hxy->Draw("colz");
 //    e4->WaitPrimitive();
-    d4->cd(4);
+    //d4->cd(4);
+    //d4->WaitPrimitive();
     hxy_filtr->Draw("colz");
+    //d4->WaitPrimitive();
+    //d4->Wait();
 
     return;
 }

@@ -18,7 +18,7 @@ Float_t gety(Float_t X, Int_t det)
 
 float π = TMath::Pi();
 
-void projekcja(void)
+void projekcja(TString filename="QDC.root")
 {
     cout << "pi " << π;
     Int_t Qthr = 400; // ustawienie progu dyskryminacji impulsow
@@ -35,7 +35,7 @@ void projekcja(void)
     Double_t q_re[nbin], q_im[nbin]; // odwrotna transformata Fouriera (część rzeczywista i urojona)
 
     // otworz plik z danymi w formacie root
-    TFile *hfile = TFile::Open("QDC.root");
+    TFile *hfile = TFile::Open(filename);
     TTree *tree = (TTree*)hfile->Get("tree");
     tree->SetBranchAddress("QX1", &QX1);
     tree->SetBranchAddress("QX2", &QX2);
@@ -263,30 +263,15 @@ void projekcja(void)
 
     gStyle->SetOptStat(0);
     TCanvas* d4 = new TCanvas("d4", "Histograms", 200, 160, 1200, 1200); //utworz kanwe
-//    TCanvas* e4 = new TCanvas("e4", "Histograms_del", 200, 160, 1200, 1200); //utworz kanwe
-    //d4->Divide(2, 2);
-    //    d4->cd(1);
-    //    hx->Draw();
-    //    d4->cd(2);
-    //    hy->Draw();
     d4->cd(1);
-    //    holdxy->Draw();
-    //    d4->cd(4);
-    hsphi->Draw("colz");
-    //d4->cd(2);
-    //d4->WaitPrimitive();
     hsphi_filtr->Draw("colz");
-//    d4->Update();
-    //d4->WaitPrimitive();
-//   e4->Divide(1, 1);
-    //d4->cd(3);
-    hxy->Draw("colz");
-//    e4->WaitPrimitive();
-    //d4->cd(4);
-    //d4->WaitPrimitive();
+    d4->WaitPrimitive();
+    hsphi->Draw("colz");
+    d4->WaitPrimitive();
     hxy_filtr->Draw("colz");
-    //d4->WaitPrimitive();
-    //d4->Wait();
+    d4->WaitPrimitive();
+    hxy->Draw("colz");
+    d4->WaitPrimitive();
 
     return;
 }
